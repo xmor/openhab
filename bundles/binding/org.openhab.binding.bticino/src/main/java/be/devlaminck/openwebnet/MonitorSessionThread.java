@@ -201,6 +201,7 @@ public class MonitorSessionThread extends Thread {
                 objectClass = "Thermo";
                 objectName = who + "*" + where;
 
+                // Measured Temperature
                 if (frameParts[2].equalsIgnoreCase("0")) {
                     String temperature = frameParts[3];
                     temperature = OWNUtilities.convertTemperature(temperature);
@@ -208,6 +209,72 @@ public class MonitorSessionThread extends Thread {
                     if (temperature != null) {
                         event.addProperty("temperature", temperature);
                     }
+                    
+                // Operation temperature with offset
+                // (eg. SetPoint temperature 14.5 Local offset +1 = 15.5)
+				} else if (frameParts[2].equalsIgnoreCase("12") && frameParts[4].equalsIgnoreCase("3")) {
+					String temperature = frameParts[3];
+					temperature = OWNUtilities.convertTemperature(temperature);
+					messageDescription = "Local Offset Temperature value";
+					if (temperature != null) {
+						event.addProperty("localOffsetTemperature", temperature);
+					}
+					
+				// Local set offset
+				} else if (frameParts[2].equalsIgnoreCase("13")) {
+					String localOffset = frameParts[3];
+					if (localOffset.equalsIgnoreCase("00")) {
+						event.addProperty("localOffset", "0");
+					} else if (localOffset.equalsIgnoreCase("01")) {
+						event.addProperty("localOffset", "+1");
+					} else if (localOffset.equalsIgnoreCase("11")) {
+						event.addProperty("localOffset", "-1");
+					} else if (localOffset.equalsIgnoreCase("02")) {
+						event.addProperty("localOffset", "+2");
+					} else if (localOffset.equalsIgnoreCase("12")) {
+						event.addProperty("localOffset", "-2");
+					} else if (localOffset.equalsIgnoreCase("03")) {
+						event.addProperty("localOffset", "+3");
+					} else if (localOffset.equalsIgnoreCase("13")) {
+						event.addProperty("localOffset", "-3");
+					} else if (localOffset.equalsIgnoreCase("4")) {
+						event.addProperty("localOffset", "OFF");
+					} else if (localOffset.equalsIgnoreCase("5")) {
+						event.addProperty("localOffset", "Local protection");
+					}
+					messageDescription = "Local Offset";
+				
+				// Actuator status
+				} else if (frameParts[2].equalsIgnoreCase("20")) {
+					String[] where_parts = where.split("#");
+	                if (where_parts.length > 1) {
+	                    where = where_parts[0];
+	                }
+	                messageDescription = "Actuator status";
+					String actuatorValue = frameParts[3];
+					event.addProperty("actuatorValue", actuatorValue);
+					if (actuatorValue.equalsIgnoreCase("0")) {
+						event.addProperty("actuatorStatus", "OFF");
+					} else if (actuatorValue.equalsIgnoreCase("1")) {
+						event.addProperty("actuatorStatus", "ON");
+					} else if (actuatorValue.equalsIgnoreCase("2")) {
+						event.addProperty("actuatorStatus", "Opened");
+					} else if (actuatorValue.equalsIgnoreCase("3")) {
+						event.addProperty("actuatorStatus", "Closed");
+					} else if (actuatorValue.equalsIgnoreCase("4")) {
+						event.addProperty("actuatorStatus", "Stop");
+					} else if (actuatorValue.equalsIgnoreCase("5")) {
+						event.addProperty("actuatorStatus", "OFF Fan Coil");
+					} else if (actuatorValue.equalsIgnoreCase("6")) {
+						event.addProperty("actuatorStatus", "ON Vel 1");
+					} else if (actuatorValue.equalsIgnoreCase("7")) {
+						event.addProperty("actuatorStatus", "ON Vel 2");
+					} else if (actuatorValue.equalsIgnoreCase("8")) {
+						event.addProperty("actuatorStatus", "ON Vel 3");
+					} else if (actuatorValue.equalsIgnoreCase("9")) {
+						event.addProperty("actuatorStatus", "ON Fan Coil");
+					}
+					
                 } else {
                     logger.debug("other temperature message");
 
